@@ -1,3 +1,4 @@
 # zameer siddiqui
-This is my fisrt git Resporitory
+This is my first git Resporitory
+<br>
 by zameer
