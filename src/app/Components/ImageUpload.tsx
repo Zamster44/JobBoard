@@ -1,9 +1,9 @@
 'use client';
 import { Button } from "@radix-ui/themes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {faEnvelope, faMobile, faPerson, faPhone, faStar, faUser, IconDefinition} from "@fortawesome/free-solid-svg-icons";
-import { ChangeEvent, useRef, useState , useEffect } from "react";
-import {v4} from "uuid"
+import { faEnvelope, faMobile, faPerson, faPhone, faStar, faUser, IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { ChangeEvent, useRef, useState, useEffect } from "react";
+import { v4 } from "uuid"
 import {
     ref,
     uploadBytesResumable,
@@ -13,29 +13,30 @@ import {
 } from "firebase/storage"
 import { storage } from "./firebase";
 import { error } from "console";
+import Image from "next/image";
 
-export default function ImageUpload({icon}: {icon:IconDefinition}) {
+export default function ImageUpload({ icon }: { icon: IconDefinition }) {
     const fileInRef = useRef<HTMLInputElement>(null)
-    const [imageList , setImageList] = useState<string[]>([]);
-    const imageListRef = ref(storage , '/images')
-    const [url , setUrl] = useState<string | null>(null);
+    const [imageList, setImageList] = useState<string[]>([]);
+    const imageListRef = ref(storage, '/images')
+    const [url, setUrl] = useState<string | null>(null);
 
-    function upload(e: ChangeEvent<HTMLInputElement>){
+    function upload(e: ChangeEvent<HTMLInputElement>) {
         const input = e.target as HTMLInputElement;
-        if(input && input.files?.length  &&  input.files.length  > 0){
+        if (input && input.files?.length && input.files.length > 0) {
             handleUpload(input.files[0]);
         }
     }
 
-    function handleUpload(image : File){
-        if(image){
-            const storageRef = ref(storage , `images/${image.name + v4() }`)
+    function handleUpload(image: File) {
+        if (image) {
+            const storageRef = ref(storage, `images/${image.name + v4()}`)
 
-            const uploadTask = uploadBytesResumable(storageRef , image)
+            const uploadTask = uploadBytesResumable(storageRef, image)
 
             uploadTask.on(
                 "state_changed",
-                (snapshot: UploadTaskSnapshot) =>{
+                (snapshot: UploadTaskSnapshot) => {
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
                     console.log(`progress -> ${progress}`)
                 },
@@ -52,10 +53,10 @@ export default function ImageUpload({icon}: {icon:IconDefinition}) {
     }
 
     useEffect(() => {
-        listAll(imageListRef).then.((response) => {
-            response.item.forEach((item) => {
+        listAll(imageListRef).then((response) => {
+            response.items.forEach((item) => {
                 getDownloadURL(item).then((url) => {
-                    setImageList((prev) => [...prev , url])
+                    setImageList((prev) => [...prev, url])
                 })
             })
         })
@@ -64,17 +65,20 @@ export default function ImageUpload({icon}: {icon:IconDefinition}) {
     return (
         <>
             <div className="bg-gray-100 rounded-md size-24 inline-flex items-center justify-center">
-                {}
-                <FontAwesomeIcon icon={icon} className="text-gray-400" />
+                {url ?
+                    <Image src={url} alt="photo" width={1024} height={1024} className="w-auto h-auto" />
+                    :
+                    <FontAwesomeIcon icon={icon} className="text-gray-400" />
+                }
             </div>
             <div className="mt-2">
-                <input 
-                    type="file" 
-                    ref={fileInRef} 
+                <input
+                    type="file"
+                    ref={fileInRef}
                     className="hidden"
                     onChange={upload}
-                    />
-                <Button 
+                />
+                <Button
                     type="button"
                     variant="soft"
                     onClick={() => fileInRef.current?.click()}
