@@ -38,6 +38,6 @@ export default async function NewListingForOrgpage(props: PageProps) {
     
 
     return (
-        <JobForms />
+        <JobForms orgId = {orgId}  />
     );
 }

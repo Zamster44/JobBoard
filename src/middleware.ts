@@ -8,6 +8,7 @@ export const config = {
     matcher: ['/',
         '/new-listing',
         '/new-company',
-        '/new-listing/:orgId*'
+        '/new-listing/:orgId*',
+        '/jobs/:orgId*'
     ]
 };

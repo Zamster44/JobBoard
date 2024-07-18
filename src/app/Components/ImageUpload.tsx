@@ -2,6 +2,7 @@
 import { Button } from "@radix-ui/themes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEnvelope, faMobile, faPerson, faPhone, faStar, faUser, IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { ChangeEvent, useRef, useState, useEffect } from "react";
 import { v4 } from "uuid"
 import {
@@ -15,21 +16,23 @@ import { storage } from "./firebase";
 import { error } from "console";
 import Image from "next/image";
 
-export default function ImageUpload({ icon }: { icon: IconDefinition }) {
+export default function ImageUpload({ name , icon }: { name:string , icon: IconDefinition }) {
     const fileInRef = useRef<HTMLInputElement>(null)
-    const [imageList, setImageList] = useState<string[]>([]);
-    const imageListRef = ref(storage, '/images')
     const [url, setUrl] = useState<string | null>(null);
+    const [loading , setLoading] = useState(false);
 
     function upload(e: ChangeEvent<HTMLInputElement>) {
+        setLoading(true);
         const input = e.target as HTMLInputElement;
         if (input && input.files?.length && input.files.length > 0) {
             handleUpload(input.files[0]);
         }
+        setLoading(false);
     }
 
     function handleUpload(image: File) {
         if (image) {
+            console.log(loading)
             const storageRef = ref(storage, `images/${image.name + v4()}`)
 
             const uploadTask = uploadBytesResumable(storageRef, image)
@@ -47,30 +50,31 @@ export default function ImageUpload({ icon }: { icon: IconDefinition }) {
                 () => {
                     //complete function
                     console.log("upload is Completed")
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                        setUrl(downloadURL)
+                        // You can now use the download URL for further processing, like saving it to your Firestore database
+                    });
                 }
             )
+            
         }
     }
 
-    useEffect(() => {
-        listAll(imageListRef).then((response) => {
-            response.items.forEach((item) => {
-                getDownloadURL(item).then((url) => {
-                    setImageList((prev) => [...prev, url])
-                })
-            })
-        })
-    }, [])
+    
 
     return (
         <>
             <div className="bg-gray-100 rounded-md size-24 inline-flex items-center justify-center">
+                {loading && 
+                <FontAwesomeIcon icon={faSpinner} className="text-gray-400 animate-spin" />
+                }
                 {url ?
-                    <Image src={url} alt="photo" width={1024} height={1024} className="w-auto h-auto" />
+                    <img src={url} alt="photo"  className="size-24" />
                     :
                     <FontAwesomeIcon icon={icon} className="text-gray-400" />
                 }
             </div>
+            <input type="hidden" value={url} name={name} />
             <div className="mt-2">
                 <input
                     type="file"
