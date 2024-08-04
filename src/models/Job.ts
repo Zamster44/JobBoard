@@ -1,4 +1,5 @@
-import { model, models, Schema } from "mongoose";
+import {AutoPaginatable, OrganizationMembership, User, WorkOS} from "@workos-inc/node";
+import mongoose, {model, models, Schema} from 'mongoose';
 
 export type Job = {
     _id: string;
@@ -19,6 +20,7 @@ export type Job = {
     orgId : string; 
     createdAt: string;
     updatedAt: string;
+    isAdmin?:boolean;
 }
 
 const JobsSchema = new Schema({
@@ -38,6 +40,26 @@ const JobsSchema = new Schema({
     orgId : {type: String , required: true},   
 } , {
     timestamps : true, 
-})
+});
+
+export async function addOrgAndUserData(jobsDocs:Job[], user:User|null) {
+    jobsDocs = JSON.parse(JSON.stringify(jobsDocs));
+    await mongoose.connect(process.env.MONGO_URI as string);
+    const workos = new WorkOS(process.env.WORKOS_API_KEY);
+    let oms:AutoPaginatable<OrganizationMembership>|null = null;
+    if (user) {
+      oms = await workos.userManagement.listOrganizationMemberships({
+        userId: user?.id,
+      });
+    }
+    for (const job of jobsDocs) {
+      const org = await workos.organizations.getOrganization(job.orgId);
+      job.orgName = org.name;
+      if (oms && oms.data.length > 0) {
+        job.isAdmin = !!oms.data.find(om => om.organizationId === job.orgId);
+      }
+    }
+    return jobsDocs;
+  }
 
 export const JobModel = models?.Job || model('Job' , JobsSchema)  //No idea

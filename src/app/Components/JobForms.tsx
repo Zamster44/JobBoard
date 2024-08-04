@@ -11,24 +11,25 @@ import "react-country-state-city/dist/react-country-state-city.css";
 import { Button } from "@radix-ui/themes";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {faEnvelope, faMobile, faPerson, faPhone, faStar, faUser} from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faMobile, faPerson, faPhone, faStar, faUser } from "@fortawesome/free-solid-svg-icons";
 import ImageUpload from "./ImageUpload";
+import type { Job } from "@/models/Job";
 import { redirect } from "next/navigation";
 import { saveJobsActions } from "../actions/JobAction";
 
-export default function JobForms({orgId}:{orgId:string;}) {
+export default function JobForms({ orgId, jobDoc }: { orgId: string; jobDoc?: Job }) {
     const [countryId, setCountryId] = useState(0);
     const [stateId, setstateId] = useState(0);
-    const [cityId , setCityId] = useState(0);
-    const [countryName , setCountryName] = useState('');
-    const [stateName , setStateName] = useState('');
-    const [cityName , setCityName] = useState('');
+    const [cityId, setCityId] = useState(0);
+    const [countryName, setCountryName] = useState('');
+    const [stateName, setStateName] = useState('');
+    const [cityName, setCityName] = useState('');
 
     async function handleSaveJob(data: FormData) {
-        data.set('country' , countryName.toString());
-        data.set('state' , stateName.toString());
-        data.set('city' , cityName.toString());
-        data.set('orgId' , orgId);
+        data.set('country', countryName.toString());
+        data.set('state', stateName.toString());
+        data.set('city', cityName.toString());
+        data.set('orgId', orgId);
         const jobDoc = await saveJobsActions(data);
         redirect(`/jobs/${jobDoc.orgId}`);
     }
@@ -36,8 +37,11 @@ export default function JobForms({orgId}:{orgId:string;}) {
     return (
         <Theme>
             <form action={handleSaveJob} className="container mt-6 flex flex-col gap-4">
+                {jobDoc && (
+                    <input type="hidden" name="id" value={jobDoc?._id} />
+                )}
                 <TextField.Root name="title" placeholder="Job title" />
-                
+
                 <div className="grid grid-cols-3 gap-4 *:grow">
                     <div className="">
                         Remote?
@@ -66,7 +70,7 @@ export default function JobForms({orgId}:{orgId:string;}) {
                     Location
                     <div className="flex flex-col md:flex-row gap-4 *:grow">
                         <CountrySelect
-                            onChange={(e:any) => {
+                            onChange={(e: any) => {
                                 setCountryId(e.id);
                                 setCountryName(e.name);
                             }}
@@ -75,7 +79,7 @@ export default function JobForms({orgId}:{orgId:string;}) {
 
                         <StateSelect
                             countryid={countryId}
-                            onChange={(e:any) => {
+                            onChange={(e: any) => {
                                 setstateId(e.id);
                                 setStateName(e.name);
                             }}
@@ -85,7 +89,7 @@ export default function JobForms({orgId}:{orgId:string;}) {
                         <CitySelect
                             countryid={countryId}
                             stateid={stateId}
-                            onChange={(e:any) => {
+                            onChange={(e: any) => {
                                 setCityId(e.id);
                                 setCityName(e.name);
                             }}
@@ -96,23 +100,23 @@ export default function JobForms({orgId}:{orgId:string;}) {
                 <div className="sm:flex">
                     <div className="w-1/3 ">
                         <h3>Job Icon</h3>
-                        <ImageUpload name="jobIcon" icon={faStar}/>
+                        <ImageUpload name="jobIcon" icon={faStar} />
                     </div>
                     <div className="grow">
                         <h3>Contact Person</h3>
                         <div className="flex gap-2">
                             <div className="">
-                            <ImageUpload name="contactPhoto" icon={faUser}/>
+                                <ImageUpload name="contactPhoto" icon={faUser} />
                             </div>
                             <div className="grow flex flex-col gap-1">
                                 <TextField.Root placeholder="Name" name="contactName" >
-                                    <TextField.Slot><FontAwesomeIcon icon={faUser}/></TextField.Slot>
+                                    <TextField.Slot><FontAwesomeIcon icon={faUser} /></TextField.Slot>
                                 </TextField.Root>
                                 <TextField.Root placeholder="Phone" type="tel" name="contactPhone">
-                                    <TextField.Slot><FontAwesomeIcon icon={faPhone}/></TextField.Slot>
+                                    <TextField.Slot><FontAwesomeIcon icon={faPhone} /></TextField.Slot>
                                 </TextField.Root>
                                 <TextField.Root placeholder="Email" type="email" name="contactEmail">
-                                    <TextField.Slot><FontAwesomeIcon icon={faEnvelope}/></TextField.Slot>
+                                    <TextField.Slot><FontAwesomeIcon icon={faEnvelope} /></TextField.Slot>
                                 </TextField.Root>
                             </div>
                         </div>
